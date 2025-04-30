@@ -32,7 +32,7 @@ class TestRunner extends BaseViewModel {
     document = parse('');
 
     List<String> imports = [
-      '<script src="http://localhost:8080/index.mjs">console.log("hello")</script>',
+      '<script src="http://localhost:8080/index.js">console.log("hello")</script>',
       '<script src="https://unpkg.com/chai@4.3.10/chai.js"></script>',
       '<script src="https://unpkg.com/mocha@10.3.0/mocha.js"></script>',
       '<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>',
