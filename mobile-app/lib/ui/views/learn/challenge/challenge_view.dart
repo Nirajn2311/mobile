@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:freecodecamp/enums/panel_type.dart';
@@ -31,6 +33,7 @@ class ChallengeView extends StatelessWidget {
       onViewModelReady: (model) {
         model.init(block, challenge, challengesCompleted);
       },
+      onDispose: (model) => model.shutdownLocalHost(),
       builder: (context, model, child) {
         int maxChallenges = block.challenges.length;
         ChallengeFile currFile = model.currentFile(challenge);
@@ -304,12 +307,19 @@ class ChallengeView extends StatelessWidget {
                 width: 1,
                 height: 1,
                 child: InAppWebView(
+                  initialUrlRequest: URLRequest(
+                    url: WebUri('http://localhost:8080/'),
+                  ),
                   onWebViewCreated: (controller) {
                     model.setTestController = controller;
                   },
                   onConsoleMessage: (controller, console) {
-                    model.handleConsoleLogMessagges(console, challenge);
+                    log('Console message: ${console.message}');
+                    // model.handleConsoleLogMessagges(console, challenge);
                   },
+                  initialSettings: InAppWebViewSettings(
+                    isInspectable: true,
+                  ),
                 ),
               ),
               Container(
@@ -439,10 +449,35 @@ class ChallengeView extends StatelessWidget {
 
                                 model.setShowPanel = false;
                                 model.setIsRunningTests = true;
-                                await model.runner.setWebViewContent(
-                                  challenge,
-                                  controller: model.testController!,
-                                );
+                                log('running tests');
+                                var res = await model.testController!
+                                    .callAsyncJavaScript(functionBody: '''
+await import("http://localhost:8080/index.js");
+console.log("FCC", FCCSandbox);
+const runner = await window.FCCSandbox.createTestRunner({
+  source: "var x = 5;",
+  type: "worker",
+  code: {
+    contents: "",
+  },
+  assetPath: "/",
+})
+
+// Test Fail
+// const result = await runner.runTest("assert.equal(x, 3);");
+
+// Test Pass
+const result = await runner.runTest("assert.equal(x, 5);");
+
+console.log(JSON.stringify(result));
+return result;
+''');
+                                log('res: $res');
+                                model.setIsRunningTests = false;
+                                // await model.runner.setWebViewContent(
+                                //   challenge,
+                                //   controller: model.testController!,
+                                // );
                               }
                             : null,
                         splashColor: Colors.transparent,

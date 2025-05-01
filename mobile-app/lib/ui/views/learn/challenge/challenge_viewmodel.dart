@@ -360,6 +360,10 @@ class ChallengeViewModel extends BaseViewModel {
     return challenge;
   }
 
+  void shutdownLocalHost() async {
+    await _localhostServer.close();
+  }
+
   // This parses the preview document with the correct viewport size. This document
   // is then displayed in the preview panel. The preview document does not modify
   // the original challenge document.
